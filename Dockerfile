@@ -12,7 +12,7 @@ RUN curl -sS https://getcomposer.org/installer | php \
 
 WORKDIR /var/www/backend
 
-COPY composer.json composer.lock ./
+COPY composer.json composer.lock artisan  ./
 
 RUN composer install --no-dev --optimize-autoloader -vvv
 
