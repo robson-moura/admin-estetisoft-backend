@@ -2,28 +2,33 @@ FROM php:8.1-fpm
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Instala dependências e extensões PHP
 RUN apt update && apt install -y \
     git unzip zip curl vim build-essential pkg-config \
     libzip-dev libicu-dev zlib1g-dev libxml2-dev libcurl4-openssl-dev libonig-dev \
     && docker-php-ext-install intl pdo_mysql zip bcmath mbstring xml opcache
 
+# Instala o Composer
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
 
+# Define o diretório de trabalho
 WORKDIR /var/www/backend
 
-COPY composer.json composer.lock artisan  ./
-
-RUN composer install --no-dev --optimize-autoloader -vvv
-
+# Copia todo o código (inclui bootstrap/app.php e artisan)
 COPY . .
 
+# Instala as dependências do Laravel
+RUN composer install --no-dev --optimize-autoloader -vvv
+
+# Ajusta permissões
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+# Porta padrão para Railway
 ENV PORT=8080
-
 EXPOSE 8080
 
+# Define o comando de execução baseado no ambiente
 CMD if [ "$MODE" = "railway" ]; then \
         php -S 0.0.0.0:$PORT -t public; \
     else \
