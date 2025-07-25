@@ -33,8 +33,6 @@ ENV PORT=9000
 EXPOSE 9000
 
 # Define o comando de execução baseado no ambiente
-CMD if [ "$MODE" = "railway" ]; then \
-        php -S 0.0.0.0:$PORT -t public; \
-    else \
-        php-fpm; \
-    fi
+CMD php -S 0.0.0.0:$PORT -t public
+
+
