@@ -1,41 +1,37 @@
 FROM php:8.1-fpm
 
-# Instala dependências do sistema e extensões PHP
+# Evita prompts interativos no apt
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instala dependências do sistema e extensões PHP necessárias
 RUN apt update && apt install -y \
     git unzip zip curl vim \
     libzip-dev libicu-dev zlib1g-dev libxml2-dev libcurl4-openssl-dev \
-    && docker-php-ext-install \
-        intl \
-        pdo \
-        pdo_mysql \
-        zip \
-        bcmath \
-        mbstring \
-        tokenizer \
-        xml \
-        opcache
+    && docker-php-ext-install intl pdo pdo_mysql zip bcmath mbstring xml opcache
 
-# Instala o Composer
+# Instala Composer globalmente
 RUN curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer
 
 # Define diretório de trabalho
 WORKDIR /var/www/backend
 
-# Copia o código do projeto
-COPY . .
-
-# Instala dependências PHP do Laravel
+# Copia os arquivos de dependências e instala para aproveitar cache
+COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader -vvv
+
+# Copia o restante do código
+COPY . .
 
 # Ajusta permissões
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-
-# Definir variável de porta (usada no Railway)
+# Define variável de ambiente para a porta (Railway)
 ENV PORT=8080
 
-# Condicional: se ENV MODE=railway, usa php -S. Caso contrário, roda fpm (ex: para Nginx)
+EXPOSE 8080
+
+# Comando para rodar dependendo do ambiente
 CMD if [ "$MODE" = "railway" ]; then \
         php -S 0.0.0.0:$PORT -t public; \
     else \
