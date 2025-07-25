@@ -18,11 +18,15 @@ WORKDIR /var/www/backend
 # Copia todo o código (inclui bootstrap/app.php e artisan)
 COPY . .
 
-# Instala as dependências do Laravel
-RUN composer install --no-dev --optimize-autoloader -vvv
+COPY . .
 
-# Ajusta permissões
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Cria diretórios necessários com permissões antes do composer
+RUN mkdir -p bootstrap/cache storage/framework storage/logs \
+    && chmod -R 775 bootstrap/cache storage \
+    && chown -R www-data:www-data bootstrap/cache storage
+
+# Instala dependências do Laravel
+RUN composer install --no-dev --optimize-autoloader
 
 # Porta padrão para Railway
 ENV PORT=8080
