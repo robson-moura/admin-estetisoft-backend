@@ -1,26 +1,36 @@
 FROM php:8.1-fpm
 
-# Atualizar pacotes e instalar dependências necessárias
-RUN apt update \
-    && apt install -y zlib1g-dev g++ git libicu-dev zip libzip-dev unzip curl vim \
-    && docker-php-ext-install intl opcache pdo pdo_mysql \
-    && docker-php-ext-configure zip \
-    && docker-php-ext-install zip
+# Instala dependências do sistema e extensões PHP
+RUN apt update && apt install -y \
+    git unzip zip curl vim \
+    libzip-dev libicu-dev zlib1g-dev libxml2-dev libcurl4-openssl-dev \
+    && docker-php-ext-install \
+        intl \
+        pdo \
+        pdo_mysql \
+        zip \
+        bcmath \
+        mbstring \
+        tokenizer \
+        xml \
+        opcache
 
-# Instalar o Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Instala o Composer
+RUN curl -sS https://getcomposer.org/installer | php \
+    && mv composer.phar /usr/local/bin/composer
 
-# Configurar o diretório de trabalho
+# Define diretório de trabalho
 WORKDIR /var/www/backend
 
-# Copia arquivos do projeto (melhore isso com .dockerignore)
+# Copia o código do projeto
 COPY . .
 
-# Instalar dependências do Laravel
-RUN composer install --no-dev --optimize-autoloader
+# Instala dependências PHP do Laravel
+RUN composer install --no-dev --optimize-autoloader -vvv
 
-# Permissões para storage e cache
-RUN chmod -R 775 storage bootstrap/cache
+# Ajusta permissões
+RUN chown -R www-data:www-data storage bootstrap/cache
+
 
 # Definir variável de porta (usada no Railway)
 ENV PORT=8080
