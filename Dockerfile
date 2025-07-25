@@ -21,7 +21,12 @@ COPY . .
 COPY . .
 
 # Cria diretórios necessários com permissões antes do composer
-RUN mkdir -p bootstrap/cache storage/framework storage/logs \
+RUN mkdir -p \
+    bootstrap/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/logs \
     && chmod -R 775 bootstrap/cache storage \
     && chown -R www-data:www-data bootstrap/cache storage
 
@@ -29,10 +34,12 @@ RUN mkdir -p bootstrap/cache storage/framework storage/logs \
 RUN composer install --no-dev --optimize-autoloader
 
 # Porta padrão para Railway
-ENV PORT=9000
-EXPOSE 9000
+ENV PORT=8080
+EXPOSE 8080
 
 # Define o comando de execução baseado no ambiente
-CMD php -S 0.0.0.0:$PORT -t public
-
-
+CMD if [ "$MODE" = "railway" ]; then \
+        php -S 0.0.0.0:$PORT -t public; \
+    else \
+        php-fpm; \
+    fi
