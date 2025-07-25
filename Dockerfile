@@ -29,8 +29,8 @@ RUN mkdir -p bootstrap/cache storage/framework storage/logs \
 RUN composer install --no-dev --optimize-autoloader
 
 # Porta padrão para Railway
-ENV PORT=9080
-EXPOSE 9080
+ENV PORT=9000
+EXPOSE 9000
 
 # Define o comando de execução baseado no ambiente
 CMD if [ "$MODE" = "railway" ]; then \
